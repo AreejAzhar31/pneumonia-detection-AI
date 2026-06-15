@@ -282,8 +282,4 @@ Each prediction saves a report to `reports/`. Sample output:
 
 ---
 
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
 
