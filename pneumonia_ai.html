@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pneumonia Detection AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+:root {
+  --navy:    #1e3448;
+  --navy-2:  #2e4a63;
+  --navy-3:  #3d5f7a;
+  --sky:     #8ab4cc;
+  --sky-2:   #cfe3ee;
+  --sky-3:   #dce8f0;
+  --cream:   #faf8ee;
+  --red:     #c54040;
+  --red-2:   #fce8e8;
+  --green:   #2a7a4a;
+  --green-2: #e3f5ea;
+  --yellow:  #c8900a;
+  --yellow-2:#fff4db;
+  --text:    #1a2a38;
+  --muted:   #5580a0;
+  --border:  #c5cfd8;
+  --font-sans: 'Sora', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  background: #e8f0f6;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ── Shell ── */
+.shell {
+  width: 100%;
+  max-width: 920px;
+  background: var(--sky-3);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(30,52,72,.18), 0 4px 16px rgba(30,52,72,.08);
+}
+
+/* ── Topbar ── */
+.topbar {
+  background: var(--navy);
+  padding: 11px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #e06060; }
+.dot-y { background: #d4a84b; }
+.dot-g { background: #5aaf74; }
+.topbar-title {
+  flex: 1;
+  text-align: center;
+  color: var(--sky-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: .06em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.topbar-nav { display: flex; gap: 4px; }
+.tab-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--sky);
+  padding: 4px 10px;
+  border-radius: 12px;
+  transition: all .2s;
+  letter-spacing: .03em;
+}
+.tab-btn:hover, .tab-btn.active { background: rgba(138,180,204,.18); color: var(--sky-2); }
+
+/* ── Screens ── */
+.screen { display: none; padding: 18px; flex-direction: column; gap: 14px; }
+.screen.active { display: flex; }
+
+.screen-badge {
+  background: var(--navy);
+  color: var(--sky-2);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 20px;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: .04em;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--cream);
+  border-radius: 12px;
+  padding: 15px;
+  border: .5px solid var(--border);
+}
+.card-title {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.card-title i { font-size: 15px; color: var(--muted); }
+
+/* ── Upload zone ── */
+.drop-zone {
+  width: 100%;
+  height: 130px;
+  background: var(--sky-3);
+  border-radius: 9px;
+  border: 1.5px dashed var(--sky);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 12px;
+  transition: background .2s, border-color .2s;
+  position: relative;
+  overflow: hidden;
+}
+.drop-zone:hover { background: #c4d8e8; border-color: var(--navy-2); }
+.drop-zone i { font-size: 34px; }
+.drop-zone img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 7px;
+}
+
+/* ── Form inputs ── */
+.form-group label {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 3px;
+  letter-spacing: .03em;
+}
+.form-group input {
+  width: 100%;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  padding: 6px 9px;
+  border-radius: 7px;
+  border: .5px solid var(--border);
+  background: var(--sky-3);
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+}
+.form-group input:focus { border-color: var(--navy-2); }
+
+/* ── Workflow steps ── */
+.step { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #3a5570; }
+.step-num {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--navy); color: var(--sky-2);
+  font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.step-arrow { color: var(--sky); font-size: 10px; margin-left: 28px; }
+
+/* ── Buttons ── */
+.btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.btn {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12.5px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .2s;
+}
+.btn-primary { background: var(--navy); color: var(--sky-2); }
+.btn-primary:hover { background: var(--navy-3); }
+.btn-primary:disabled { background: var(--sky); cursor: not-allowed; opacity: .6; }
+.btn-ghost { background: var(--cream); color: var(--navy); border: .5px solid var(--border); }
+.btn-ghost:hover { background: var(--sky-3); }
+
+/* ── Tags ── */
+.tag {
+  display: inline-block;
+  background: var(--sky-3);
+  color: var(--navy-2);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin: 2px;
+}
+
+/* ── File badge ── */
+.file-badge {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--navy-2);
+  background: var(--sky-3);
+  border-radius: 7px;
+  padding: 5px 10px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Divider ── */
+.divider {
+  display: flex; align-items: center; gap: 8px;
+  margin: 10px 0 8px;
+}
+.divider-line { flex: 1; height: 1px; background: var(--sky-3); }
+.divider-label { font-size: 10px; color: var(--sky); letter-spacing: .03em; }
+
+/* ── RESULT SCREEN ── */
+
+/* Diagnosis pill */
+.dx-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.dx-normal  { background: var(--green-2); color: var(--green); }
+.dx-mild    { background: var(--yellow-2); color: var(--yellow); }
+.dx-severe  { background: var(--red-2); color: var(--red); }
+
+/* Confidence bar */
+.conf-track { background: var(--sky-3); border-radius: 4px; height: 8px; overflow: hidden; margin: 4px 0 2px; }
+.conf-fill  { height: 100%; border-radius: 4px; background: var(--navy-2); transition: width .6s ease; }
+.conf-labels { font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; }
+
+/* Severity bar */
+.sev-track { height: 10px; border-radius: 5px; overflow: hidden; display: flex; gap: 2px; margin: 4px 0; }
+.sev-seg { flex: 1; height: 100%; border-radius: 2px; }
+
+/* Class probability row */
+.prob-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--muted);
+  margin-bottom: 4px;
+}
+.prob-row-label { width: 52px; font-family: var(--font-mono); font-size: 10.5px; }
+.prob-bar-wrap { flex: 1; background: var(--sky-3); border-radius: 3px; height: 5px; overflow: hidden; }
+.prob-bar-fill { height: 100%; border-radius: 3px; background: var(--navy-2); transition: width .6s ease; }
+.prob-pct { width: 34px; text-align: right; font-family: var(--font-mono); font-size: 10.5px; }
+
+/* Rec items */
+.rec-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 7px 0;
+  border-bottom: .5px solid var(--sky-3);
+  font-size: 12px; color: #3a5570; line-height: 1.55;
+}
+.rec-item:last-child { border-bottom: none; }
+.rec-item i { font-size: 15px; color: var(--muted); margin-top: 1px; flex-shrink: 0; }
+.rec-item strong { font-weight: 500; color: var(--navy); }
+
+/* Caution items */
+.caution-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 11.5px; color: #4a6070; line-height: 1.55;
+  padding: 5px 0;
+  border-bottom: .5px solid var(--sky-3);
+}
+.caution-item:last-child { border-bottom: none; }
+.caution-item i { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+/* Viz */
+.viz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.viz-block { background: var(--sky-3); border-radius: 8px; padding: 9px; text-align: center; }
+.viz-block-label { font-size: 10px; color: #3a5570; margin-top: 5px; }
+.xray-box {
+  width: 100%; height: 80px;
+  background: #1a2a38;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 10px;
+  overflow: hidden;
+}
+.heatmap-box {
+  width: 100%; height: 80px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1a2a38 0%, #8b2020 45%, #e06060 70%, #f5c842 100%);
+  opacity: .85;
+  position: relative;
+  overflow: hidden;
+}
+.heatmap-box::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(229,100,100,.7) 0%, transparent 70%);
+}
+
+/* Follow-up box */
+.followup-box {
+  background: var(--sky-3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #3a5570;
+  line-height: 1.6;
+  border-left: 3px solid var(--navy-2);
+  margin-top: 10px;
+}
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; padding: 50px 20px;
+  color: var(--muted); text-align: center;
+}
+.empty-state i { font-size: 42px; opacity: .4; }
+.empty-state p { font-size: 13px; line-height: 1.65; }
+
+/* Disclaimer */
+.disclaimer {
+  background: var(--sky-3);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.6;
+  border: .5px solid var(--border);
+}
+
+/* Loading overlay */
+.loading-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(30,52,72,.5);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--sky-2);
+}
+.loading-overlay.show { display: flex; }
+.spinner {
+  width: 44px; height: 44px;
+  border: 3px solid rgba(138,180,204,.3);
+  border-top-color: var(--sky-2);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-label { font-size: 13px; font-weight: 500; letter-spacing: .04em; }
+.loading-sub { font-size: 11px; opacity: .7; font-family: var(--font-mono); }
+
+/* Result fade-in */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp .4s ease forwards; }
+
+/* Scrollable rec panel */
+.rec-scroll { max-height: 200px; overflow-y: auto; }
+.rec-scroll::-webkit-scrollbar { width: 4px; }
+.rec-scroll::-webkit-scrollbar-track { background: var(--sky-3); border-radius: 2px; }
+.rec-scroll::-webkit-scrollbar-thumb { background: var(--sky); border-radius: 2px; }
+
+/* Report textarea */
+.report-area {
+  width: 100%;
+  height: 220px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text);
+  background: var(--sky-3);
+  border: .5px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  resize: none;
+  outline: none;
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-label">Analyzing X-ray...</div>
+  <div class="loading-sub" id="loading-sub">Loading model weights</div>
+</div>
+
+<div class="shell">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="dot dot-r"></div>
+    <div class="dot dot-y"></div>
+    <div class="dot dot-g"></div>
+    <div class="topbar-title">
+      <i class="ti ti-lungs" style="font-size:15px"></i>
+      Pneumonia AI — Detection System
+    </div>
+    <div class="topbar-nav">
+      <button class="tab-btn active" id="tab-input" onclick="showScreen('input')">Input</button>
+      <button class="tab-btn" id="tab-result" onclick="showScreen('result')">Results</button>
+      <button class="tab-btn" id="tab-report" onclick="showScreen('report')">Report</button>
+    </div>
+  </div>
+
+  <!-- ══ INPUT SCREEN ══ -->
+  <div class="screen active" id="screen-input">
+    <div class="screen-badge"><i class="ti ti-upload"></i>Input &amp; Upload</div>
+
+    <div style="display:grid;grid-template-columns:190px 1fr;gap:14px">
+
+      <!-- About card -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-info-circle"></i>About</div>
+          <p style="font-size:11.5px;color:#4a6070;line-height:1.7;margin-bottom:10px">
+            Upload a chest X-ray to detect pneumonia. The AI model classifies into
+            three categories and generates clinical recommendations.
+          </p>
+          <div>
+            <span class="tag"><i class="ti ti-virus" style="font-size:10px"></i> Viral (Mild)</span>
+            <span class="tag"><i class="ti ti-bacteria" style="font-size:10px"></i> Bacterial (Severe)</span>
+            <span class="tag"><i class="ti ti-check" style="font-size:10px"></i> Normal</span>
+          </div>
+          <div style="margin-top:12px;font-size:10px;color:var(--muted);line-height:1.7">
+            <strong style="color:var(--navy-2)">Model:</strong> EfficientNetB3<br>
+            <strong style="color:var(--navy-2)">Input:</strong> 224×224 RGB<br>
+            <strong style="color:var(--navy-2)">Format:</strong> JPEG · PNG
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ti ti-git-branch"></i>Workflow</div>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <div class="step"><div class="step-num">1</div>Upload chest X-ray</div>
+            <div class="step-arrow">↓</div>
+            <div class="step"><div class="step-num">2</div>Preprocess image</div>
+            <div class="step-arrow">↓</div>
+            <div class="step"><div class="step-num">3</div>CNN inference</div>
+            <div class="step-arrow">↓</div>
+            <div class="step"><div class="step-num">4</div>Recommendations</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-photo-scan"></i>X-ray Image</div>
+          <div class="drop-zone" id="drop-zone" onclick="document.getElementById('fileInput').click()">
+            <i class="ti ti-cloud-upload"></i>
+            <span>Click to upload or drag &amp; drop</span>
+            <span style="font-size:10px;opacity:.7">JPEG / PNG supported</span>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" style="display:none">
+
+          <div class="file-badge" id="file-badge">
+            <i class="ti ti-file-check" style="font-size:14px;color:var(--muted)"></i>
+            <span id="file-name"></span>
+          </div>
+
+          <div class="divider">
+            <div class="divider-line"></div>
+            <span class="divider-label">patient info (optional)</span>
+            <div class="divider-line"></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div class="form-group">
+              <label>Patient ID</label>
+              <input type="text" id="patient-id" placeholder="PT-00142">
+            </div>
+            <div class="form-group">
+              <label>Age</label>
+              <input type="text" id="patient-age" placeholder="34">
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <input type="text" id="patient-gender" placeholder="M / F">
+            </div>
+          </div>
+        </div>
+
+        <!-- Demo mode -->
+        <div class="card" style="border-style:dashed;background:var(--sky-3)">
+          <div class="card-title" style="margin-bottom:8px"><i class="ti ti-flask"></i>Demo Mode — Test without a real X-ray</div>
+          <div style="display:flex;gap:7px;flex-wrap:wrap">
+            <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="loadDemo('normal')">
+              <i class="ti ti-check" style="color:var(--green)"></i> Normal
+            </button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="loadDemo('mild')">
+              <i class="ti ti-alert-triangle" style="color:var(--yellow)"></i> Mild (Viral)
+            </button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="loadDemo('severe')">
+              <i class="ti ti-alert-octagon" style="color:var(--red)"></i> Severe (Bacterial)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="resetAll()"><i class="ti ti-refresh"></i>Reset</button>
+      <button class="btn btn-primary" id="analyze-btn" disabled onclick="runAnalysis()">
+        <i class="ti ti-scan"></i>Analyze X-ray
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ RESULT SCREEN ══ -->
+  <div class="screen" id="screen-result">
+    <div class="screen-badge"><i class="ti ti-report-medical"></i>Diagnosis Results</div>
+
+    <!-- Empty state -->
+    <div id="no-result" class="card">
+      <div class="empty-state">
+        <i class="ti ti-photo-off"></i>
+        <p>No analysis run yet.<br>Upload an X-ray on the Input screen and click <strong>Analyze X-ray</strong>.</p>
+        <button class="btn btn-primary" onclick="showScreen('input')"><i class="ti ti-arrow-left"></i>Go to Input</button>
+      </div>
+    </div>
+
+    <!-- Result content -->
+    <div id="result-content" style="display:none;flex-direction:column;gap:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+
+        <!-- Prediction card -->
+        <div class="card fade-up">
+          <div class="card-title"><i class="ti ti-stethoscope"></i>Prediction Output</div>
+
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:5px">Diagnosis</div>
+            <span class="dx-pill" id="res-pill"><i class="ti ti-loader"></i> —</span>
+          </div>
+
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Type</div>
+            <span id="res-type" style="font-size:12px;font-weight:500;color:var(--navy)">—</span>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <div class="conf-labels"><span>Confidence</span><span id="res-conf-pct" style="font-weight:600;color:var(--navy)">—</span></div>
+            <div class="conf-track"><div class="conf-fill" id="res-conf-bar" style="width:0%"></div></div>
+            <div id="res-conf-note" style="font-size:10px;color:var(--muted)">—</div>
+          </div>
+
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px">Severity Estimate</div>
+            <div class="sev-track" id="res-sev-track"></div>
+            <div style="font-size:10px;color:var(--muted);display:flex;justify-content:space-between">
+              <span>Mild</span><span>Severe</span>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:6px">Class Probabilities</div>
+            <div id="res-probs"></div>
+          </div>
+        </div>
+
+        <!-- Recommendation card -->
+        <div class="card fade-up" style="animation-delay:.08s">
+          <div class="card-title"><i class="ti ti-notes-medical"></i>Recommendations</div>
+          <div class="rec-scroll" id="res-recs"></div>
+          <div class="followup-box" id="res-followup"></div>
+        </div>
+
+        <!-- Visualization card -->
+        <div class="card fade-up" style="animation-delay:.16s">
+          <div class="card-title"><i class="ti ti-eye"></i>Visualization</div>
+          <div class="viz-grid">
+            <div class="viz-block">
+              <div class="xray-box" id="res-xray">
+                <i class="ti ti-lungs" style="font-size:26px"></i>
+              </div>
+              <div class="viz-block-label">Original X-ray</div>
+            </div>
+            <div class="viz-block">
+              <div class="heatmap-box"></div>
+              <div class="viz-block-label">Grad-CAM heatmap</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;font-size:10px;color:var(--muted);line-height:1.5">
+            Red regions indicate areas with the highest influence on the model's prediction.
+          </div>
+
+          <div style="margin-top:12px">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.06em">⚠ Cautions</div>
+            <div id="res-cautions" style="font-size:11px;color:#4a6070;line-height:1.6"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        <strong style="color:var(--navy)">Disclaimer:</strong>
+        This output is generated by an AI model for informational purposes only.
+        It does <em>not</em> replace professional medical diagnosis or clinical judgment.
+        Always consult a qualified physician before taking any medical action.
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="resetAll();showScreen('input')"><i class="ti ti-arrow-left"></i>New Scan</button>
+        <button class="btn btn-ghost" onclick="showScreen('report')"><i class="ti ti-file-text"></i>View Full Report</button>
+        <button class="btn btn-primary" onclick="downloadReport()"><i class="ti ti-download"></i>Download Report</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REPORT SCREEN ══ -->
+  <div class="screen" id="screen-report">
+    <div class="screen-badge"><i class="ti ti-file-description"></i>Full Text Report</div>
+
+    <div id="no-report" class="card">
+      <div class="empty-state">
+        <i class="ti ti-file-off"></i>
+        <p>No report generated yet.<br>Run an analysis first.</p>
+        <button class="btn btn-primary" onclick="showScreen('input')"><i class="ti ti-arrow-left"></i>Go to Input</button>
+      </div>
+    </div>
+
+    <div id="report-content" style="display:none;flex-direction:column;gap:12px">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-file-description"></i>Generated Report</div>
+        <textarea class="report-area" id="report-text" readonly></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="showScreen('result')"><i class="ti ti-arrow-left"></i>Back to Results</button>
+        <button class="btn btn-ghost" onclick="copyReport()"><i class="ti ti-copy"></i>Copy</button>
+        <button class="btn btn-primary" onclick="downloadReport()"><i class="ti ti-download"></i>Download .txt</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  KNOWLEDGE BASE  (mirrors recommendations.py Module 4)
+// ══════════════════════════════════════════════════════════
+const KB = {
+  normal: {
+    displayLabel: 'No Pneumonia Detected',
+    sevLevel: 0,
+    description: 'The chest X-ray shows no significant signs of pneumonia. Lung fields appear clear with no visible consolidation or infiltrates.',
+    symptoms: ['No respiratory distress observed','Lung fields appear clear','No abnormal opacities detected'],
+    medications: [
+      { icon: 'ti-circle-check', text: 'No medication required at this time' },
+      { icon: 'ti-pill', text: 'Continue any existing prescribed treatments' },
+      { icon: 'ti-droplet', text: 'Maintain regular hydration and adequate rest' }
+    ],
+    cautions: [
+      'This result is AI-generated and must be confirmed by a licensed physician',
+      'Seek medical attention if symptoms such as fever, cough, or breathlessness develop',
+      'Schedule a follow-up if symptoms persist beyond 3–5 days'
+    ],
+    followUp: 'Routine check-up recommended. No immediate action required.'
+  },
+  mild: {
+    displayLabel: 'Mild Pneumonia (Viral)',
+    sevLevel: 1,
+    description: 'The chest X-ray shows signs consistent with mild viral pneumonia. Mild interstitial infiltrates may be present. Early medical evaluation is strongly recommended.',
+    symptoms: ['Mild fever (38–39°C)','Dry or productive cough','Fatigue and general weakness','Mild shortness of breath on exertion','Possible chest discomfort'],
+    medications: [
+      { icon: 'ti-pill', text: '<strong>Antipyretics</strong> (e.g., Paracetamol 500mg) for fever management' },
+      { icon: 'ti-droplet', text: 'Rest and significantly increased fluid intake' },
+      { icon: 'ti-stethoscope', text: 'Antiviral therapy <em>only</em> if prescribed by a physician' },
+      { icon: 'ti-lungs', text: 'Cough suppressants or expectorants as advised by a doctor' },
+      { icon: 'ti-ban', text: 'Do NOT self-prescribe antibiotics — viral pneumonia does not respond to them' }
+    ],
+    cautions: [
+      'This result is AI-generated and must be confirmed by a licensed physician',
+      'Monitor SpO₂ — seek emergency care if below 94%',
+      'Avoid contact with vulnerable individuals (elderly, immunocompromised)',
+      'Do not ignore worsening symptoms — escalation to severe is possible',
+      'Antibiotics are NOT recommended without medical guidance'
+    ],
+    followUp: 'Consult a physician within 24–48 hours. A repeat X-ray may be advised after 7–10 days to monitor resolution.'
+  },
+  severe: {
+    displayLabel: 'Severe Pneumonia (Bacterial)',
+    sevLevel: 2,
+    description: 'The chest X-ray shows signs consistent with severe bacterial pneumonia. Significant consolidation or lobar involvement may be present. IMMEDIATE medical attention is required.',
+    symptoms: ['High fever (>39°C) with chills and rigors','Severe productive cough, possibly rust-coloured sputum','Significant shortness of breath even at rest','Chest pain worsening with deep breathing (pleuritic)','Rapid breathing and elevated heart rate','Possible confusion or altered mental status','Cyanosis (bluish discolouration of lips or fingertips)'],
+    medications: [
+      { icon: 'ti-alert-octagon', text: '<strong>URGENT:</strong> IV or oral antibiotics as prescribed by a physician' },
+      { icon: 'ti-pill', text: 'Common first-line: Amoxicillin-Clavulanate or Azithromycin (physician decision)' },
+      { icon: 'ti-lungs', text: 'Supplemental oxygen therapy if SpO₂ below 94%' },
+      { icon: 'ti-thermometer', text: 'Antipyretics for fever under physician guidance' },
+      { icon: 'ti-building-hospital', text: 'Hospitalisation likely required for IV therapy and monitoring' },
+      { icon: 'ti-ban', text: 'Do NOT delay treatment — bacterial pneumonia can be life-threatening' }
+    ],
+    cautions: [
+      '⚠ SEEK EMERGENCY MEDICAL CARE IMMEDIATELY',
+      'This result is AI-generated and must be confirmed by a licensed physician',
+      'Do NOT self-medicate — incorrect antibiotic use worsens outcomes',
+      'Monitor SpO₂ continuously — go to ER if below 92%',
+      'Risk of sepsis if untreated — do not delay hospital evaluation',
+      'Keep patient upright and calm; avoid all strenuous activity'
+    ],
+    followUp: 'IMMEDIATE hospital evaluation required. Do not wait for scheduled appointments — visit an emergency department now.'
+  },
+  // ✅ FIX: 'pneumonia' is the label returned by the fixed server.py
+  pneumonia: {
+    displayLabel: 'Pneumonia Detected',
+    sevLevel: 2,
+    description: 'The chest X-ray shows signs consistent with pneumonia. Consolidation or infiltrates may be visible in the lung fields. Medical evaluation is strongly recommended.',
+    symptoms: ['Fever and chills','Productive cough','Shortness of breath or difficulty breathing','Chest pain worsening with deep breathing','Fatigue and body aches','Rapid breathing or rapid heart rate'],
+    medications: [
+      { icon: 'ti-alert-octagon', text: '<strong>Consult a physician immediately</strong> for appropriate antibiotic or antiviral therapy' },
+      { icon: 'ti-thermometer', text: 'Antipyretics (e.g., Paracetamol) for fever under physician guidance' },
+      { icon: 'ti-lungs', text: 'Supplemental oxygen if SpO₂ is below 94%' },
+      { icon: 'ti-ban', text: 'Do NOT self-medicate — treatment depends on type (bacterial vs viral)' }
+    ],
+    cautions: [
+      '⚠ Seek medical attention promptly',
+      'This result is AI-generated and must be confirmed by a licensed physician',
+      'Monitor for worsening symptoms — go to ER if breathing becomes severely difficult',
+      'Do NOT delay evaluation — pneumonia can progress rapidly if untreated'
+    ],
+    followUp: 'Visit a physician or hospital as soon as possible for clinical evaluation and treatment.'
+  }
+};
+
+// ══════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════
+let state = {
+  imageDataUrl: null,
+  fileName: null,
+  result: null,   // { label, confidence, allProbs }
+  report: null
+};
+
+// ══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════════════
+function showScreen(name) {
+  ['input','result','report'].forEach(s => {
+    document.getElementById('screen-' + s).classList.remove('active');
+    document.getElementById('tab-' + s).classList.remove('active');
+  });
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════════
+//  FILE HANDLING
+// ══════════════════════════════════════════════════════════
+function handleFile(f) {
+  if (!f || !f.type.startsWith('image/')) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    state.imageDataUrl = ev.target.result;
+    state.fileName = f.name;
+    const dz = document.getElementById('drop-zone');
+    dz.innerHTML = '<img src="' + state.imageDataUrl + '" alt="X-ray preview">';
+    const badge = document.getElementById('file-badge');
+    badge.style.display = 'flex';
+    document.getElementById('file-name').textContent = f.name;
+    document.getElementById('analyze-btn').disabled = false;
+  };
+  r.readAsDataURL(f);
+}
+
+document.getElementById('fileInput').addEventListener('change', function() { handleFile(this.files[0]); });
+
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.background = '#b8d4e8'; });
+dz.addEventListener('dragleave', () => { dz.style.background = ''; });
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.style.background = '';
+  handleFile(e.dataTransfer.files[0]);
+});
+
+// ══════════════════════════════════════════════════════════
+//  DEMO MODE — simulate a result without a real image
+// ══════════════════════════════════════════════════════════
+function loadDemo(label) {
+  // Generate plausible probabilities
+  const probMap = {
+    normal: { normal: 0.91, mild: 0.06, severe: 0.03 },
+    mild:   { normal: 0.07, mild: 0.82, severe: 0.11 },
+    severe: { normal: 0.04, mild: 0.09, severe: 0.87 }
+  };
+  const probs = probMap[label];
+  const conf  = probs[label];
+
+  // Draw a simple placeholder X-ray canvas
+  const canvas = document.createElement('canvas');
+  canvas.width = 224; canvas.height = 224;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#1a2a38';
+  ctx.fillRect(0, 0, 224, 224);
+  ctx.strokeStyle = '#2e4a6366';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 224; i += 14) {
+    ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 224); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(224, i); ctx.stroke();
+  }
+  ctx.fillStyle = '#3d5f7a';
+  ctx.beginPath(); ctx.ellipse(112,112,70,85,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#2e4a63';
+  ctx.beginPath(); ctx.ellipse(80,112,28,50,-.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(144,112,28,50,.2,0,Math.PI*2); ctx.fill();
+  if (label === 'severe') {
+    ctx.fillStyle = 'rgba(197,64,64,.35)';
+    ctx.beginPath(); ctx.ellipse(148,105,22,28,.3,0,Math.PI*2); ctx.fill();
+  }
+  if (label === 'mild') {
+    ctx.fillStyle = 'rgba(200,144,10,.2)';
+    ctx.beginPath(); ctx.ellipse(82,100,16,20,-.1,0,Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle = '#8aabcc';
+  ctx.font = '9px monospace';
+  ctx.fillText('DEMO · ' + label.toUpperCase(), 6, 14);
+
+  state.imageDataUrl = canvas.toDataURL('image/jpeg');
+  state.fileName = 'demo_' + label + '.jpg';
+
+  const dropEl = document.getElementById('drop-zone');
+  dropEl.innerHTML = '<img src="' + state.imageDataUrl + '" alt="Demo X-ray">';
+  const badge = document.getElementById('file-badge');
+  badge.style.display = 'flex';
+  document.getElementById('file-name').textContent = 'Demo — ' + KB[label].displayLabel;
+  document.getElementById('analyze-btn').disabled = false;
+
+  // Pre-set result so analysis is instant for demo
+  state.result = { label, confidence: conf, allProbs: probs };
+}
+
+// ══════════════════════════════════════════════════════════
+//  ANALYSIS — simulates Module 3 inference + Module 4 recs
+// ══════════════════════════════════════════════════════════
+const LOADING_STEPS = [
+  'Loading model weights…',
+  'Preprocessing image (224×224)…',
+  'Running EfficientNetB3 inference…',
+  'Computing class probabilities…',
+  'Generating recommendations…'
+];
+
+async function runAnalysis() {
+  if (!state.imageDataUrl) return;
+
+  // Always clear any previous result so we always hit the server
+  state.result = null;
+
+  showLoading(true);
+  let step = 0;
+  const interval = setInterval(() => {
+    document.getElementById('loading-sub').textContent = LOADING_STEPS[step] || '';
+    step++;
+    if (step >= LOADING_STEPS.length) clearInterval(interval);
+  }, 480);
+
+  try {
+    const response = await fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image:     state.imageDataUrl,
+        patientId: document.getElementById('patient-id').value,
+        age:       document.getElementById('patient-age').value,
+        gender:    document.getElementById('patient-gender').value
+      })
+    });
+
+    clearInterval(interval);
+    showLoading(false);
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Unknown server error.' }));
+      showError(err.error || 'Server returned an error.');
+      return;
+    }
+
+    const data = await response.json();
+
+    // data = { label, confidence, allProbs, report }
+    state.result = {
+      label:      data.label,
+      confidence: data.confidence,
+      allProbs:   data.allProbs
+    };
+    // Use server-generated report text if available
+    if (data.report) state.report = data.report;
+
+    renderResult();
+    showScreen('result');
+
+  } catch (err) {
+    clearInterval(interval);
+    showLoading(false);
+    showError('Could not reach the server. Make sure server.py is running on port 5000.');
+  }
+}
+
+function showError(msg) {
+  alert('⚠ ' + msg);
+}
+
+function showLoading(show) {
+  document.getElementById('loading').classList.toggle('show', show);
+}
+
+// ══════════════════════════════════════════════════════════
+//  RENDER RESULT  (Module 4 knowledge base → DOM)
+// ══════════════════════════════════════════════════════════
+function renderResult() {
+  const { label, confidence, allProbs } = state.result;
+  const kb = KB[label];
+
+  document.getElementById('no-result').style.display = 'none';
+  const rc = document.getElementById('result-content');
+  rc.style.display = 'flex';
+
+  // — Diagnosis pill
+  const pill = document.getElementById('res-pill');
+  const pillClass = { normal:'dx-normal', mild:'dx-mild', severe:'dx-severe', pneumonia:'dx-severe' }[label];
+  const pillIcon  = { normal:'ti-check', mild:'ti-alert-triangle', severe:'ti-alert-octagon', pneumonia:'ti-alert-octagon' }[label];
+  pill.className = 'dx-pill ' + pillClass;
+  pill.innerHTML = '<i class="ti ' + pillIcon + '" style="font-size:13px"></i>' + kb.displayLabel;
+
+  // — Type
+  const typeMap = { normal:'No Pathogen Detected', mild:'Viral Pneumonia', severe:'Bacterial Pneumonia', pneumonia:'Pneumonia Detected' };
+  document.getElementById('res-type').textContent = typeMap[label];
+
+  // — Confidence
+  const pct = Math.round(confidence * 100);
+  document.getElementById('res-conf-pct').textContent = pct + '%';
+  document.getElementById('res-conf-bar').style.width = pct + '%';
+  const notes = [
+    pct >= 85 ? 'High confidence' : pct >= 70 ? 'Moderate confidence' : 'Low confidence',
+    '— clinical review recommended'
+  ];
+  document.getElementById('res-conf-note').textContent = notes.join(' ');
+
+  // — Severity bar (5 segments)
+  const sevTrack = document.getElementById('res-sev-track');
+  sevTrack.innerHTML = '';
+  const filled = [0,2,4][kb.sevLevel]; // segments to colour
+  const sevColors = ['#5580a0','#c8900a','#c54040'];
+  for (let i = 0; i < 5; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'sev-seg';
+    seg.style.background = i <= filled ? sevColors[kb.sevLevel] : 'var(--sky-3)';
+    sevTrack.appendChild(seg);
+  }
+
+  // — Class probabilities
+  const probsDiv = document.getElementById('res-probs');
+  probsDiv.innerHTML = '';
+  Object.keys(allProbs).forEach(cls => {
+    const p = allProbs[cls] || 0;
+    const row = document.createElement('div');
+    row.className = 'prob-row';
+    row.innerHTML =
+      '<span class="prob-row-label">' + cls + '</span>' +
+      '<div class="prob-bar-wrap"><div class="prob-bar-fill" style="width:' + Math.round(p*100) + '%"></div></div>' +
+      '<span class="prob-pct">' + Math.round(p*100) + '%</span>';
+    probsDiv.appendChild(row);
+  });
+
+  // — Recommendations
+  const recsDiv = document.getElementById('res-recs');
+  recsDiv.innerHTML = '';
+  kb.medications.forEach(m => {
+    const item = document.createElement('div');
+    item.className = 'rec-item';
+    item.innerHTML = '<i class="ti ' + m.icon + '"></i><span>' + m.text + '</span>';
+    recsDiv.appendChild(item);
+  });
+
+  // — Follow-up
+  document.getElementById('res-followup').innerHTML =
+    '<strong style="font-size:10px;color:var(--navy);text-transform:uppercase;letter-spacing:.06em">Follow-up</strong><br>' +
+    kb.followUp;
+
+  // — X-ray preview
+  const xrayEl = document.getElementById('res-xray');
+  xrayEl.innerHTML = '<img src="' + state.imageDataUrl + '" style="width:100%;height:80px;object-fit:cover;border-radius:6px;">';
+
+  // — Cautions
+  const cautionsDiv = document.getElementById('res-cautions');
+  cautionsDiv.innerHTML = kb.cautions.map(c =>
+    '<div class="caution-item"><i class="ti ti-point-filled" style="color:var(--muted)"></i>' + c + '</div>'
+  ).join('');
+
+  // — Build and cache full text report (mirrors recommendations.py build_report)
+  state.report = buildTextReport(label, confidence, allProbs, kb);
+  document.getElementById('report-text').value = state.report;
+  document.getElementById('no-report').style.display = 'none';
+  document.getElementById('report-content').style.display = 'flex';
+}
+
+// ══════════════════════════════════════════════════════════
+//  TEXT REPORT  (mirrors recommendations.py build_report)
+// ══════════════════════════════════════════════════════════
+function buildTextReport(label, confidence, allProbs, kb) {
+  const now = new Date().toLocaleString('en-GB', { hour12:false });
+  const pid  = document.getElementById('patient-id').value || 'N/A';
+  const age  = document.getElementById('patient-age').value || 'N/A';
+  const sex  = document.getElementById('patient-gender').value || 'N/A';
+  const conf = (confidence * 100).toFixed(1);
+  const stars = ['○○','●○','●●'][kb.sevLevel];
+  const sevLabel = ['Low','Moderate','High'][kb.sevLevel];
+  const border = '═'.repeat(58);
+
+  const probLines = Object.keys(allProbs).map(cls => {
+    const p = ((allProbs[cls]||0)*100).toFixed(1);
+    const bar = '█'.repeat(Math.round((allProbs[cls]||0)*30));
+    return `    ${cls.padEnd(12)} ${p.padStart(5)}%  ${bar}`;
+  }).join('\n');
+
+  const symList  = kb.symptoms.map(s => '    • ' + s).join('\n');
+  const medList  = kb.medications.map(m => '    • ' + m.text.replace(/<[^>]+>/g,'')).join('\n');
+  const cauList  = kb.cautions.map(c => '    • ' + c).join('\n');
+
+  return `
+${border}
+  PNEUMONIA DETECTION — RECOMMENDATION REPORT
+${border}
+  Date / Time  : ${now}
+  Patient ID   : ${pid}
+  Age          : ${age}
+  Gender       : ${sex}
+  File         : ${state.fileName || 'N/A'}
+${border}
+
+  DIAGNOSIS    : ${kb.displayLabel}
+  CONFIDENCE   : ${conf}%
+  SEVERITY     : [${stars}]  (${sevLabel})
+
+${border}
+
+  DESCRIPTION
+    ${kb.description}
+
+  OBSERVED / EXPECTED SYMPTOMS
+${symList}
+
+  CLASS PROBABILITIES
+${probLines}
+
+  RECOMMENDED MEDICATIONS & ACTIONS
+${medList}
+
+  CAUTIONS & IMPORTANT NOTICES
+${cauList}
+
+  FOLLOW-UP ADVICE
+    ${kb.followUp}
+
+${border}
+  DISCLAIMER
+    This report is generated by an AI model for informational
+    purposes only. It does NOT replace professional medical
+    diagnosis. Always consult a qualified physician before
+    taking any medical action.
+${border}
+`;
+}
+
+// ══════════════════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════════════════
+function downloadReport() {
+  if (!state.report) return;
+  const blob = new Blob([state.report], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'pneumonia_report_' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyReport() {
+  const ta = document.getElementById('report-text');
+  ta.select();
+  document.execCommand('copy');
+  const btn = event.target.closest('button');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-check"></i>Copied!';
+  setTimeout(() => { btn.innerHTML = orig; }, 1800);
+}
+
+function resetAll() {
+  state = { imageDataUrl: null, fileName: null, result: null, report: null };
+  const dz = document.getElementById('drop-zone');
+  dz.innerHTML = '<i class="ti ti-cloud-upload"></i><span>Click to upload or drag & drop</span><span style="font-size:10px;opacity:.7">JPEG / PNG supported</span>';
+  document.getElementById('file-badge').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('no-result').style.display = '';
+  document.getElementById('result-content').style.display = 'none';
+  document.getElementById('no-report').style.display = '';
+  document.getElementById('report-content').style.display = 'none';
+  ['patient-id','patient-age','patient-gender'].forEach(id => document.getElementById(id).value = '');
+}
+</script>
+</body>
+</html>

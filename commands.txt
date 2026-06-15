@@ -1,0 +1,4 @@
+1-
+cd "D:\university\BSCS\4TH semester\Artificial Intelligence\Project\pneumonia_ai"
+2-
+python test_model.py "chest_xray\chest_xray\test\PNEUMONIA\IMAGE NAME"
